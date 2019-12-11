@@ -12,6 +12,16 @@ import (
 	"github.com/configurator/multidock/pkg/types"
 )
 
+func generateManifestFromArgs(images []string) *types.Manifest {
+	manifest := &types.Manifest{
+		Images: make([]types.Image, len(images)),
+	}
+	for index, id := range images {
+		manifest.Images[index].Id = id
+	}
+	return manifest
+}
+
 func main() {
 	fmt.Printf("Multidock generator v1.0.0\n")
 
@@ -19,17 +29,31 @@ func main() {
 	tags := flag.StringArrayP("tag", "t", []string{}, "Name and optionally a tag in the 'name:tag' format")
 	flag.Parse()
 
-	buildMode(*manifestFile, *tags)
-}
+	images := flag.Args()
 
-func buildMode(manifestFile string, tags []string) {
-	if manifestFile == "" {
-		log.Fatal("Manifest is required")
+	manifestSpecified := *manifestFile != ""
+	imagesSpecified := len(images) != 0
+
+	if manifestSpecified && imagesSpecified {
+		fmt.Println("Specify either a manifest, or a list of images, to run; not both")
+		flag.Usage()
+		os.Exit(1)
 	}
 
-	manifest, err := types.ReadManifestFromFile(manifestFile)
-	if err != nil {
-		log.Fatal(err)
+	var manifest *types.Manifest
+	var err error
+
+	if manifestSpecified {
+		manifest, err = types.ReadManifestFromFile(*manifestFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if imagesSpecified {
+		manifest = generateManifestFromArgs(images)
+	} else {
+		fmt.Println("Specify either a manifest, or a list of images, to run")
+		flag.Usage()
+		os.Exit(1)
 	}
 
 	dockerdir, err := ioutil.TempDir(".", "multidock-dockerdir-")
@@ -38,7 +62,7 @@ func buildMode(manifestFile string, tags []string) {
 	}
 	defer os.RemoveAll(dockerdir)
 
-	err = generator.GenerateDockerImage(manifest, dockerdir, tags)
+	err = generator.GenerateDockerImage(manifest, dockerdir, *tags)
 	if err != nil {
 		log.Fatal(err)
 	}
