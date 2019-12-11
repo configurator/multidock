@@ -109,8 +109,6 @@ func runImage(image types.Image) {
 		},
 	}
 
-	fmt.Printf("%#v\n", command)
-
 	err = command.Run()
 	if err == nil {
 		log.Printf("Process %s exited with error code %d\n", image.Id, 0)
