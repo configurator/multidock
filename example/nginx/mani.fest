@@ -1,0 +1,10 @@
+{
+	"images": [
+		{
+			"id": "nginx"
+		},
+		{
+			"id": "mongo"
+		}
+	]
+}

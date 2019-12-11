@@ -1,0 +1,14 @@
+{
+	"images": [
+		{
+			"id": "print-one",
+			"path": "/images/one",
+			"command": ["/print"]
+		},
+		{
+			"id": "print-two",
+			"path": "/images/two",
+			"command": ["/print"]
+		}
+	]
+}

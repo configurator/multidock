@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+cd "$(dirname "$0")"
+
+# Build
+docker build . --target builder -t configurator/multidock-builder-cache
+docker build . -t configurator/multidock
+
+# Use multidock to build a unified docker image with a basic nginx+mongo example
+docker run --rm -it \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	-v "$PWD/example/nginx/mani.fest":/mani.fest \
+	configurator/multidock -m /mani.fest -t configurator/multidock-target
+
+# Run the generated docker image
+# --privileged is unfortunately required for mounting /proc, /dev, etc.
+docker run --rm -it --privileged configurator/multidock-target
